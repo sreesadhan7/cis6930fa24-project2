@@ -185,12 +185,11 @@ command to run test cases:
 
 ### Observed Results and Analysis:
 
-The model achieved low evaluation scores across all metrics (accuracy, precision, recall, and F1-score were approximately 0.04). While these results are below expectations, they highlight the inherent complexity of the task and several challenges that impacted the model's performance.
+The model achieved low evaluation scores across all metrics (accuracy, precision, recall, and F1-score were approximately 0.04).
 
 ![image](https://github.com/user-attachments/assets/3502c4a1-36c3-4442-bdff-d725fa6da14e)
 
-
-While the results are suboptimal, they are reflective of the complexity of the task and the limitations of the current approach:
+While these results are below expectations, they highlight the inherent complexity of the task and several challenges that impacted the model's performance:
 - The redacted names often lack sufficient context, making it difficult for the model to accurately predict them.
 - The Random Forest Classifier and TF-IDF vectorization, though robust, were not sufficient to capture the nuanced semantic patterns required for this task.
 - spaCy's Named Entity Recognition (NER) helped refine predictions but was constrained by the limitations of the dataset.
