@@ -77,6 +77,10 @@ To execute the project, navigate to the project directory and run the following 
 
         python unredactor.py
 
+        (or)
+
+        pipenv run python unredactor.py
+
 ## Test Cases Run
 Running the following pipenv command runs the pytest cases. This project have 1 test cases.
 command to run test cases: 
