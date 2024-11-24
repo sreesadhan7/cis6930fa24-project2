@@ -31,14 +31,14 @@ def vectorize_data(train_data, val_data, test_data=None):
     """
     Convert context (text) into numerical features using TfidfVectorizer.
     """
-    # TF-IDF vectorizer with increased features and bi-grams
+    # Use TF-IDF vectorizer with increased features and bi-grams
     vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 3), stop_words="english")
     X_train = vectorizer.fit_transform(train_data["context"])
     X_val = vectorizer.transform(val_data["context"])
 
-    X_test = None
-    if test_data is not None:
-        X_test = vectorizer.transform(test_data["context"])
+    # Handle optional test data
+    X_test = vectorizer.transform(test_data["context"]) if test_data is not None else None
+
     return X_train, X_val, vectorizer, X_test
 
 
@@ -69,9 +69,11 @@ def refine_test_predictions(test_data, model, vectorizer):
     for _, row in test_data.iterrows():
         context = row["context"]
 
-        # Vectorize the context for prediction
-        vectorized_context = vectorizer.transform([context])
-        predicted_name = model.predict(vectorized_context)[0]
+        # Ensure the context is passed as a 2D array to vectorizer and model
+        vectorized_context = vectorizer.transform([context])  # Already 2D
+        
+        # Predict using the model
+        predicted_name = model.predict(vectorized_context)[0]  # Get the first (only) prediction
 
         # Refine prediction with spaCy for interlinked context
         doc = nlp(context)

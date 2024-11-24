@@ -82,7 +82,7 @@ To execute the project, navigate to the project directory and run the following 
         pipenv run python unredactor.py
 
 ## Test Cases Run
-Running the following pipenv command runs the pytest cases. This project have 1 test cases.
+Running the following pipenv command runs the pytest cases. This project have 4 test cases.
 command to run test cases: 
 
       pipenv run python -m pytest -v
@@ -182,14 +182,70 @@ command to run test cases:
     - submission_file (str): Path to the output submission file.
 
 ### test_functions.py
-1) ** **
-    - 
+1) **setup_data()**
+    - Fixture to set up temporary train and test files for testing. Describes the creation of temporary files for testing and their cleanup after the test.
+    
+    - Creates temporary files with sample data for training and testing, and ensures cleanup after tests are executed.
+
+    Returns:
+    - None: The test runs after this fixture setup.
+
+2) **test_preprocess_data(setup_data)**
+    - Test the `preprocess_data` function to ensure correct data loading, splitting into training and validation sets, and ID assignment.
+
+    - Validates:
+        - The total number of rows and columns in the data.
+        - The presence of the 'id' column in the dataset.
+        - The correct number of training and validation examples.
+
+3) **test_vectorize_data(setup_data)**
+    - Test the `vectorize_data` function to ensure proper conversion of text data into numerical features using TF-IDF vectorization.
+
+    - Validates:
+        - The correct number of training and validation samples.
+        - The use of the `TfidfVectorizer` for text vectorization.
+        - The dimensions of the output TF-IDF matrices.
+
+4) **test_train_and_predict(setup_data)**
+    - Test the `train_and_predict` function to ensure that:
+        - The RandomForest model is trained on the training data.
+        - Predictions are generated for the validation data.
+
+    - Validates:
+        - The length of the predictions matches the validation labels.
+        - The returned model is an instance of `RandomForestClassifier`.
+
+5) **test_save_test_predictions(setup_data)**
+    - Test the `save_test_predictions` function to ensure that:
+        - The predicted names are correctly saved to the submission file.
+        - The output file has the expected format and content.
+
+    - Validates:
+        - The creation of the `submission.tsv` file.
+        - The presence of the required columns ('id', 'name') in the output.
+        - The accuracy of the predicted names written to the file.
+
+https://github.com/user-attachments/assets/416c2e41-7e9a-447f-b85e-216d6e943bcc
 
 ## Model Performance and Analysis
 
 ### Observed Results and Analysis:
 
 The model achieved low evaluation scores across all metrics (accuracy, precision, recall, and F1-score were approximately 0.04).
+
+`RandomForestClassifier` and `TfidfVectorizer` are used in your code:
+
+1. `RandomForestClassifier`:
+- Robustness and Non-Linearity: Random Forest is an ensemble learning method that combines multiple decision trees to improve accuracy and reduce overfitting. It works well with high-dimensional data and can handle non-linear relationships in the data effectively.
+- Feature Importance: Random Forest provides insights into which features (words or n-grams from the TF-IDF vectorizer) contribute the most to the predictions, which is valuable in understanding model behavior.
+- Versatility and Scalability: Random Forest is versatile and performs well on a wide range of tasks, including text classification. Its parallelism and ability to handle large datasets make it suitable for text-based applications.
+
+2. `TfidfVectorizer`:
+- Capturing Importance of Words: TF-IDF (Term Frequency-Inverse Document Frequency) assigns weights to words based on their frequency in a document and across the entire dataset. It helps highlight important words while reducing the influence of common, less meaningful words like "the" or "and."
+- Handling Sparse Data: Text data is inherently sparse, with many unique words in the dataset. TF-IDF converts text into numerical features suitable for machine learning algorithms like Random Forest, preserving meaningful relationships while keeping the feature space manageable.
+- Customizable Features: TF-IDF allows customization of n-grams, stopword removal, and the maximum number of features, enabling it to capture meaningful word sequences (e.g., bi-grams, tri-grams) and focus on the most relevant features for the task.
+
+By combining `RandomForestClassifier` with `TfidfVectorizer`, your code creates a pipeline that efficiently transforms raw text data into numerical representations (using TF-IDF) and leverages the robustness of Random Forest to perform accurate and interpretable text classification.
 
 ![image](https://github.com/user-attachments/assets/3502c4a1-36c3-4442-bdff-d725fa6da14e)
 
@@ -217,6 +273,29 @@ While these results are below expectations, they highlight the inherent complexi
     - Advanced feature extraction techniques, such as n-grams and removing stop words, were incorporated to capture contextual patterns.
 3) Refinement with spaCy:
     - The spaCy NER model was integrated to refine predictions, especially for contexts containing named entities. However, this improvement was limited by the quality of the dataset.
+
+## Challenges and Limitations
+Despite the efforts to create an accurate and efficient model, there are some inherent challenges and limitations that impact the output quality and the resulting metric scores:
+
+1) Data Imbalance:
+    - The training dataset (unredactor.tsv) may have an uneven distribution of names and contexts, which can cause the model to struggle with underrepresented classes. For example, names that appear only once or in limited contexts may lead to reduced model accuracy.
+Impact: This contributes to low metric scores such as precision and recall, as the model may misclassify or fail to predict some names correctly.
+2) Complexity of Redacted Contexts:
+    - The context in the test.tsv file may include highly varied language structures, making it difficult for the model to generalize from the training data. Furthermore, the names may not appear in the same linguistic structure or context as in the training dataset.
+Impact: This mismatch reduces the model's ability to accurately reconstruct names, especially in interdependent and complex textual scenarios.
+3) TF-IDF and Random Forest Model Limitations:
+    - While TF-IDF is excellent for extracting features and Random Forest is a robust classifier, these methods may not fully capture deep semantic relationships or interdependencies in textual data. More advanced deep learning models like transformers (e.g., BERT) may perform better for such tasks but require significantly more computational resources.
+    - The combination of TF-IDF and Random Forest can miss nuanced relationships, particularly in challenging contexts with limited explicit patterns.
+4) Limited Contextual Information in Test Data:
+    - The test.tsv file often contains contexts with minimal clues about the redacted names. For example, if the name is heavily dependent on external knowledge or subtle intertextual clues, the model is unable to predict it accurately.
+    - This leads to gaps in the submission file, with incorrect or blank predictions.
+5) Overfitting to Training Data:
+    - The model may perform well on the training and validation data (unredactor.tsv) but generalize poorly to the unseen test.tsv data due to overfitting to specific patterns in the training set.
+    - While the metric scores may indicate reasonable performance on validation data, they do not translate directly to real-world performance on the test data.
+6) Interpretation of Metric Scores:
+    - Low metric scores reflect the inherent difficulty of the task, particularly with disjointed training and testing datasets. The goal is to iteratively refine the model and address these limitations.
+7) Utility of Partial Predictions:
+    - Even though the model may not achieve perfect accuracy, partial predictions can still provide meaningful insights, especially in scenarios where reconstructing any part of the redacted data is valuable.
 
 ## Bugs and Assumptions
 1) Handling Empty or Incorrect Contexts: The function refine_test_predictions assumes every context will contain valid information. If the context is empty or poorly formatted, it might result in incorrect predictions or crashes.
